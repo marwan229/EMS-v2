@@ -1,0 +1,5 @@
+{
+  "name": " EMS Model 3 Enhanced Dashboard",
+  "description": "An advanced Energy Management System (EMS) dashboard built with React and Tailwind CSS. It visualizes real-time data from a hybrid renewable energy power system, incorporating AI-based LSTM forecasting, fuzzy logic optimization, and detailed component monitoring for PV, Wind, and Fuel Cell systems. The dashboard provides comprehensive insights into power generation, energy pricing, demand forecasting, storage optimization, and system health.",
+  "requestFramePermissions": []
+}
