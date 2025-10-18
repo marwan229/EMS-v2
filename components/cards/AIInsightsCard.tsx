@@ -2,7 +2,6 @@
 import React, { useState, useCallback } from 'react';
 import { Cpu, RefreshCw, Wand2, Expand } from 'lucide-react';
 import { Card, CardAction } from '../Card';
-// FIX: Import GoogleGenAI to use the Gemini API.
 import { GoogleGenAI } from '@google/genai';
 
 const initialInsights = [
@@ -15,13 +14,24 @@ export const AIInsightsCard: React.FC = () => {
     const [insights, setInsights] = useState<string[]>(initialInsights);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [apiKey, setApiKey] = useState<string>('');
 
     const generateInsights = useCallback(async () => {
+        let key = apiKey;
+        if (!key) {
+            key = window.prompt("Please enter your Google AI API Key to generate new insights:") || '';
+            if (key) {
+                setApiKey(key);
+            } else {
+                alert("API Key is required to generate new insights.");
+                return;
+            }
+        }
+
         setIsLoading(true);
         setError(null);
         try {
-            // FIX: Initialize GoogleGenAI with a named apiKey parameter.
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: key });
             
             const prompt = `
                 You are an AI assistant for an advanced Energy Management System (EMS).
@@ -45,13 +55,11 @@ export const AIInsightsCard: React.FC = () => {
                 Do not use markdown headers or list items (like '*' or '-'). Just three separate paragraphs.
             `;
             
-            // FIX: Use ai.models.generateContent to generate content.
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: prompt,
             });
             
-            // FIX: Access the generated text directly from the response.text property.
             const text = response.text;
             
             const newInsights = text.split('\n').map(line => line.trim()).filter(line => line.length > 0 && !line.startsWith('*') && !line.startsWith('-'));
@@ -59,16 +67,21 @@ export const AIInsightsCard: React.FC = () => {
 
         } catch (e) {
             console.error(e);
+            let errorMessage = 'An unknown error occurred. Using cached insights.';
             if (e instanceof Error) {
-                setError(`Failed to generate insights: ${e.message}. Using cached insights.`);
-            } else {
-                setError('An unknown error occurred. Using cached insights.');
+                errorMessage = `Failed to generate insights: ${e.message}. Using cached insights.`;
             }
+            // If the key is invalid, clear it so the user can re-enter it next time.
+            if (errorMessage.includes('API key not valid')) {
+                setApiKey('');
+                errorMessage = "Your API Key is not valid. Please try again."
+            }
+            setError(errorMessage);
             setInsights(initialInsights);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [apiKey]);
 
     return (
         <Card title="AI-Powered Insights" icon={<Cpu />} actions={
